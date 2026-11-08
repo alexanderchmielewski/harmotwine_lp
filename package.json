@@ -4,6 +4,6 @@
   "scripts": {
     "build": "python3 scripts/build.py",
     "preview": "python3 -m http.server 4173 --directory dist",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name harmotwine --branch main"
+    "deploy": "npm run build && wrangler pages deploy dist --project-name harmotwine-lp --branch main"
   }
 }

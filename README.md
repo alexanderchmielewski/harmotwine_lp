@@ -24,7 +24,7 @@ Empty store URLs show “Coming soon”. Add the actual App Store and Google Pla
 
 Production: https://harmotwine.app
 
-Pages project: `harmotwine`
+Pages project: `harmotwine-lp`
 
 Production branch: `main`
 
@@ -34,13 +34,15 @@ Build output directory: `dist`
 
 Project root: repository root
 
-The existing Pages project uses Direct Upload. Pushing this repository does not automatically deploy it.
+Cloudflare Pages is connected directly to `alexanderchmielewski/harmotwine_lp`. Every push to `main` automatically builds and deploys production. Other branches receive preview deployments; pull requests receive preview links.
 
-To publish with an authenticated Wrangler installation:
+The Pages fallback URL is https://harmotwine-lp.pages.dev. The former `harmotwine` Direct Upload project is retained as a rollback copy; use the Git-connected project for new deployments.
+
+Push changes to `main` to publish. For an exceptional manual deployment with an authenticated Wrangler installation:
 
 ```sh
 python3 scripts/build.py
-wrangler pages deploy dist --project-name harmotwine --branch main
+wrangler pages deploy dist --project-name harmotwine-lp --branch main
 ```
 
 `npm run build`, `npm run preview` and `npm run deploy` provide equivalent shortcuts. Keep Cloudflare credentials out of this repository.
