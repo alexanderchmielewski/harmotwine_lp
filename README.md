@@ -18,7 +18,7 @@ Open http://localhost:4173. Rebuild after editing source files.
 - `config.json`: public domain, support address, Discord invite and store URLs.
 - `dist/`: generated output, excluded from Git.
 
-Empty store URLs show “Coming soon”. Add the actual App Store and Google Play URLs to `config.json` after release. `discordUrl` controls the community section and links. Icons and styles use content-versioned URLs to refresh browser caches.
+The App Store URL is configured for the iOS release. Its locally hosted badge is reused from the Taktuno landing page and appears in the hero and download section. Empty store URLs show “Coming soon”; add the Google Play URL to `config.json` after release. Availability copy and the navigation download label follow the configured store URLs. `discordUrl` controls the community section and links. Icons and styles use content-versioned URLs to refresh browser caches.
 
 ## Cloudflare Pages
 

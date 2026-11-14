@@ -24,13 +24,28 @@ style_version = hashlib.sha256((SRC / 'style.css').read_bytes()).hexdigest()[:12
 # Version URLs so browsers replace cached assets after deployment.
 
 stores = []
+available_stores = []
 for key, label in [('appStoreUrl', 'App Store'), ('playStoreUrl', 'Google Play')]:
     link = cfg[key]
     if link:
         assert urlsplit(link).scheme == 'https'
-        stores.append(f'<a class="button" href="{escape(link, quote=True)}">{label} ↗</a>')
+        if key == 'appStoreUrl':
+            badge = '<img src="/assets/appstore-badge-black.svg" alt="Download on the App Store" width="180" height="60">'
+            store = f'<a class="store-badge" href="{escape(link, quote=True)}" target="_blank" rel="noopener">{badge}</a>'
+        else:
+            store = f'<a class="button" href="{escape(link, quote=True)}">{label} ↗</a>'
+        stores.append(store)
+        available_stores.append(store)
     else:
         stores.append(f'<span class="store-pending"><small>COMING SOON TO</small>{label}</span>')
+if cfg['appStoreUrl'] and cfg['playStoreUrl']:
+    availability = 'Available now on iOS and Android.'
+elif cfg['appStoreUrl']:
+    availability = 'Available now on iOS. Coming soon to Android.'
+elif cfg['playStoreUrl']:
+    availability = 'Available now on Android. Coming soon to iOS.'
+else:
+    availability = 'Coming soon to iOS and Android.'
 discord_url = cfg.get('discordUrl', '')
 community = ''
 community_nav = ''
@@ -42,9 +57,11 @@ if discord_url:
     community_nav = '<a href="/#community">Community</a>'
     community = f'''<section class="section wrap community" id="community"><div><p class="eyebrow">A little better, together</p><h2>Find your people.<br>Help shape the game.</h2><p class="section-intro">Join our quiet corner on Discord. Share an idea, support suggestions you'd love to see, ask for a hint or tell us what could feel better. New players and quiet observers are equally welcome.</p></div><div class="community-invite"><img src="/assets/brand-icon.png?v={icon_version}" width="72" height="72" alt=""><h3>The Harmotwine community</h3><p>Player ideas · Friendly help · Game updates</p><a class="button" href="{safe_invite}">Join us on Discord <span aria-hidden="true">↗</span></a><p class="note">Discord is optional. For private support, <a href="mailto:{escape(cfg['email'], quote=True)}">email us</a>.</p></div></section>'''
 replacements = {'URL': escape(url, quote=True), 'EMAIL': escape(cfg['email'], quote=True),
-                'HERO': (SRC / 'hero.svg').read_text(), 'STORES': ''.join(stores), 'COMMUNITY': community, 'DISCORD': escape(discord_url, quote=True)}
+                'HERO': (SRC / 'hero.svg').read_text(), 'STORES': ''.join(stores),
+                'AVAILABLE_STORES': ''.join(available_stores), 'AVAILABILITY': availability,
+                'COMMUNITY': community, 'DISCORD': escape(discord_url, quote=True)}
 pages = [
-    ('index.html', '', 'Harmotwine – Move light. Find your sound.', 'A quiet puzzle of light and sound. Discover 72 puzzles in six sound worlds. Coming soon to iOS and Android.', 'en'),
+    ('index.html', '', 'Harmotwine – Move light. Find your sound.', f'A quiet puzzle of light and sound. Discover 72 puzzles in six sound worlds. {availability}', 'en'),
     ('privacy-en.html', 'privacy', 'Privacy policy · Harmotwine', 'Privacy information for the Harmotwine app and website.', 'en'),
     ('privacy.html', 'de/privacy', 'Datenschutzerklärung · Harmotwine', 'Datenschutz für Harmotwine: Spielstände, Werbung, Käufe, Website und deine Rechte.', 'de'),
     ('impressum.html', 'impressum', 'Legal notice · Harmotwine', 'Service provider and contact information for Harmotwine.', 'en'),
@@ -57,6 +74,7 @@ for source, route, title, description, lang in pages:
         body = body.replace('{{' + key + '}}', value)
     assert '{{' not in body, source
     english = lang == 'en'
+    download_label = ('Download' if english else 'Herunterladen') if available_stores else ('Coming soon' if english else 'Demnächst')
     links = [('Support', '/support'), ('Privacy policy' if english else 'Datenschutz', '/privacy' if english else '/de/privacy'), ('Use & purchases', '/terms'), ('Legal notice', '/impressum')]
     if discord_url:
         links.append(('Discord', discord_url))
@@ -64,7 +82,7 @@ for source, route, title, description, lang in pages:
     canonical = url + ('/' + route if route else '/')
     main_class = 'wrap legal' if route else ''
     html = f'''<!doctype html>
-<html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#090e1d"><title>{escape(title)}</title><meta name="description" content="{escape(description, quote=True)}"><link rel="canonical" href="{canonical}"><meta property="og:type" content="website"><meta property="og:site_name" content="Harmotwine"><meta property="og:title" content="{escape(title, quote=True)}"><meta property="og:description" content="{escape(description, quote=True)}"><meta property="og:url" content="{canonical}"><meta property="og:image" content="{url}/assets/app-icon.png?v={icon_version}"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v={icon_version}"><link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v={icon_version}"><link rel="stylesheet" href="/style.css?v={style_version}"></head><body><a class="skip" href="#main">{'Skip to content' if english else 'Zum Inhalt'}</a><header><nav class="wrap" aria-label="{'Main navigation' if english else 'Hauptnavigation'}"><a class="brand" href="/"><img src="/assets/brand-icon.png?v={icon_version}" width="38" height="38" alt="">HARMOTWINE</a><div class="navlinks">{community_nav}<a class="desktop" href="/#discover">The game</a><a href="/support">Support</a><a href="/#download">{'Coming soon' if english else 'Demnächst'} ↗</a></div></nav></header><main id="main" class="{main_class}">{body}</main><footer><div class="wrap footer-row"><span>© 2026 Harmotwine · Alexander Linack</span><div class="footer-links">{footer}</div></div></footer></body></html>'''
+<html lang="{lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#090e1d"><title>{escape(title)}</title><meta name="description" content="{escape(description, quote=True)}"><link rel="canonical" href="{canonical}"><meta property="og:type" content="website"><meta property="og:site_name" content="Harmotwine"><meta property="og:title" content="{escape(title, quote=True)}"><meta property="og:description" content="{escape(description, quote=True)}"><meta property="og:url" content="{canonical}"><meta property="og:image" content="{url}/assets/app-icon.png?v={icon_version}"><link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png?v={icon_version}"><link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png?v={icon_version}"><link rel="stylesheet" href="/style.css?v={style_version}"></head><body><a class="skip" href="#main">{'Skip to content' if english else 'Zum Inhalt'}</a><header><nav class="wrap" aria-label="{'Main navigation' if english else 'Hauptnavigation'}"><a class="brand" href="/"><img src="/assets/brand-icon.png?v={icon_version}" width="38" height="38" alt="">HARMOTWINE</a><div class="navlinks">{community_nav}<a class="desktop" href="/#discover">The game</a><a href="/support">Support</a><a href="/#download">{download_label} ↗</a></div></nav></header><main id="main" class="{main_class}">{body}</main><footer><div class="wrap footer-row"><span>© 2026 Harmotwine · Alexander Linack</span><div class="footer-links">{footer}</div></div></footer></body></html>'''
     # Keep public support addresses usable with script-src 'none'.
     html = html.replace('<body>', '<body><!--email_off-->').replace('</body>', '<!--/email_off--></body>')
     dest = OUT / route / 'index.html'
